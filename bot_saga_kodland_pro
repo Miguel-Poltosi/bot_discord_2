@@ -1,0 +1,140 @@
+import discord
+import random
+import os
+import requests
+
+from discord.ext import commands
+
+def get_dog_image_url():
+    url = 'https://random.dog/woof.json'
+
+    res = requests.get(url)
+    data = res.json()
+
+    return data['url']
+
+# Lista de emojis
+emojis = ["😀", "😂", "🥳", "😎", "🔥", "❤️", "🚀", "🐱", "👻", "🎮"]
+
+# Permissões
+intents = discord.Intents.default()
+intents.message_content = True
+intents.members = True
+
+# Criar bot
+bot = commands.Bot(command_prefix="$", intents=intents)
+
+# Sistema de XP
+xp = {}
+
+@bot.event
+async def on_ready():
+    print(f'Fizemos login como {bot.user}')
+
+
+# BOAS-VINDAS
+@bot.event
+async def on_member_join(member):
+    canal = member.guild.system_channel
+
+    if canal:
+        await canal.send(f"Bem-vindo ao servidor, {member.name}! 🎉")
+
+
+# COMANDOS ANTIGOS
+@bot.command()
+async def hello(ctx):
+    await ctx.send("Hello!")
+
+@bot.command()
+async def bye(ctx):
+    await ctx.send("🙂")
+
+@bot.command()
+async def emoji(ctx):
+    await ctx.send(random.choice(emojis))
+
+@bot.command()
+async def heh(ctx, quantidade=5):
+    await ctx.send("heh " * quantidade)
+
+@bot.command()
+async def hi(ctx, x:int):
+    await ctx.send("Hi!" * x)
+
+
+# SISTEMA DE XP
+@bot.command()
+async def rank(ctx):
+    pontos = xp.get(ctx.author.id, 0)
+    nivel = pontos // 10 + 1
+
+    await ctx.send(f"⭐ Você tem {pontos} XP e está no nível {nivel}!")
+
+@bot.command()
+async def leaderboard(ctx):
+    await ctx.send(f"🏆 Seu XP: {xp.get(ctx.author.id, 0)}")
+
+
+# JOGOS
+@bot.command()
+async def dado(ctx):
+    await ctx.send(f"🎲 Você tirou {random.randint(1, 6)}!")
+
+@bot.command()
+async def moeda(ctx):
+    resultado = random.choice(["Cara", "Coroa"])
+    await ctx.send(resultado)
+
+@bot.command()
+async def adivinhar(ctx, numero:int):
+    secreto = random.randint(1, 10)
+
+    if numero == secreto:
+        await ctx.send("🎉 Você acertou!")
+    else:
+        await ctx.send(f"Você errou! O número era {secreto}.")
+
+
+# GANHAR XP
+@bot.event
+async def on_message(message):
+    if message.author.bot:
+        return
+
+    xp[message.author.id] = xp.get(message.author.id, 0) + 1
+
+    await bot.process_commands(message)
+
+# MEME ALEATORIADOR
+# MEME ALEATORIADOR
+@bot.command()
+async def meme(ctx):
+
+    memes = os.listdir('Imagens')
+
+    img_name = random.choice(memes)
+
+    with open(f'Imagens/{img_name}', 'rb') as f:
+        picture = discord.File(f)
+        await ctx.send(file=picture)
+
+# API de Cachorros
+# API DE CACHORROS
+
+def get_dog_image_url():
+    url = 'https://random.dog/woof.json'
+
+    res = requests.get(url)
+    data = res.json()
+
+    return data['url']
+
+
+@bot.command()
+async def dog(ctx):
+    image_url = get_dog_image_url()
+    await ctx.send(image_url)
+
+#BOT TOKEN
+bot.run("Coloque sue TOKEN Aqui")
